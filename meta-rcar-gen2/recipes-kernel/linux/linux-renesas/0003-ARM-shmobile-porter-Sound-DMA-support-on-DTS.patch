@@ -1,0 +1,40 @@
+From 6f4cf4739dc96d8b35975179845e1f255ae4be04 Mon Sep 17 00:00:00 2001
+From: Biju Das <biju.das@bp.renesas.com>
+Date: Thu, 2 Apr 2015 13:02:31 +0100
+Subject: [PATCH 3/7] ARM: shmobile: porter: Sound DMA support on DTS
+
+DMA transfer to/from SSI
+
+     DMA
+[MEM] -> [SSI]
+
+     DMA
+[MEM] <- [SSI]
+
+This change is identical to the koelsch patch "ARM: shmobile: koelsch: Sound DMA support on DTS"
+from Kuninori Morimoto and backported to 3.10
+Signed-off-by: Biju Das <biju.das@bp.renesas.com>
+---
+ arch/arm/boot/dts/r8a7791-porter.dts |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/boot/dts/r8a7791-porter.dts b/arch/arm/boot/dts/r8a7791-porter.dts
+index b39dc6a..4e3239e 100644
+--- a/arch/arm/boot/dts/r8a7791-porter.dts
++++ b/arch/arm/boot/dts/r8a7791-porter.dts
+@@ -428,10 +428,10 @@
+ };
+ 
+ &ssi0 {
+-	pio-transfer;
++	no-busif;
+ };
+ 
+ &ssi1 {
+-	pio-transfer;
++	no-busif;
+ 	shared-pin;
+ };
+-- 
+1.7.9.5
+

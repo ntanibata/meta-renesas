@@ -38,6 +38,13 @@ SRC_URI_append_porter = " \
 	file://0018-porter-can-support.patch \
 	file://0019-i2c-busses-rcar-Workaround-arbitration-loss-error.patch \
 	file://0020-Silk-Remove-I2C1-clock-from-clk_enables.patch \
+	file://0001-ARM-shmobile-porter-board-Remove-Audio-platform-code.patch \
+	file://0002-ARM-shmobile-porter-Sound-PIO-support-on-DTS.patch \
+	file://0003-ARM-shmobile-porter-Sound-DMA-support-on-DTS.patch \
+	file://0004-ARM-shmobile-porter-Sound-DMA-support-via-BUSIF-on-D.patch \
+	file://0005-ARM-shmobile-porter-Sound-DMA-support-via-SRC-on-DTS.patch \
+	file://0006-ARM-shmobile-porter-Sound-DMA-support-via-DVC-on-DTS.patch \
+	file://0007-ARM-shmobile-porter-Fix-audio-clk-master-to-SSI-and-.patch \
 "
 
 SRC_URI_append_silk = " \

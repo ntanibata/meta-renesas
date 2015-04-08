@@ -1,0 +1,29 @@
+From f8b7e8b563d9cc20926141a0876c20ef2ace53c0 Mon Sep 17 00:00:00 2001
+From: Biju Das <biju.das@bp.renesas.com>
+Date: Thu, 2 Apr 2015 13:31:46 +0100
+Subject: [PATCH 7/7] ARM: shmobile: porter: Fix audio clk master to SSI and
+ change audio data interface format type
+
+Signed-off-by: Biju Das <biju.das@bp.renesas.com>
+---
+ arch/arm/boot/dts/r8a7791-porter.dts |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/arch/arm/boot/dts/r8a7791-porter.dts b/arch/arm/boot/dts/r8a7791-porter.dts
+index fcb9edd..b1acf4a 100644
+--- a/arch/arm/boot/dts/r8a7791-porter.dts
++++ b/arch/arm/boot/dts/r8a7791-porter.dts
+@@ -110,9 +110,7 @@
+ 	sound {
+ 		compatible = "simple-audio-card";
+ 
+-		simple-audio-card,format = "left_j";
+-		simple-audio-card,bitclock-master = <&sndcodec>;
+-		simple-audio-card,frame-master = <&sndcodec>;
++		simple-audio-card,format = "i2s";
+ 
+ 		sndcpu: simple-audio-card,cpu {
+ 			sound-dai = <&rcar_sound>;
+-- 
+1.7.9.5
+

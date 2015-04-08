@@ -1,0 +1,40 @@
+From ae784cb963b195bb19ce06623c156ddc673ecbe2 Mon Sep 17 00:00:00 2001
+From: Biju Das <biju.das@bp.renesas.com>
+Date: Thu, 2 Apr 2015 13:11:29 +0100
+Subject: [PATCH 4/7] ARM: shmobile: porter: Sound DMA support via BUSIF on
+ DTS
+
+DMA transfer to/from SSIU
+
+     DMA
+[MEM] -> [SSIU] -> [SSI]
+
+     DMA
+[MEM] <- [SSIU] <- [SSI]
+
+This change is identical to the koelsch patch "ARM: shmobile: koelsch: Sound DMA support via BUSIF on DTS"
+from Kuninori Morimoto and backported to 3.10
+Signed-off-by: Biju Das <biju.das@bp.renesas.com>
+---
+ arch/arm/boot/dts/r8a7791-porter.dts |    5 -----
+ 1 file changed, 5 deletions(-)
+
+diff --git a/arch/arm/boot/dts/r8a7791-porter.dts b/arch/arm/boot/dts/r8a7791-porter.dts
+index 4e3239e..10549ac 100644
+--- a/arch/arm/boot/dts/r8a7791-porter.dts
++++ b/arch/arm/boot/dts/r8a7791-porter.dts
+@@ -427,11 +427,6 @@
+ 	};
+ };
+ 
+-&ssi0 {
+-	no-busif;
+-};
+-
+ &ssi1 {
+-	no-busif;
+ 	shared-pin;
+ };
+-- 
+1.7.9.5
+
