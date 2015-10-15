@@ -1,0 +1,178 @@
+From a761e531e5a06000ed4093b9a942cb18d0b0d059 Mon Sep 17 00:00:00 2001
+From: Nobuhiko Tanibata <NOBUHIKO_TANIBATA@denso.co.jp>
+Date: Thu, 15 Oct 2015 19:33:25 +0900
+Subject: [PATCH 2/2] compositor for renesas board
+
+---
+ src/compositor-drm.c     | 70 +++++++++++++++++++++++++++++++++++++++++++-----
+ src/compositor-fbdev.c   |  8 +++---
+ src/compositor-wayland.c |  8 ++----
+ 3 files changed, 70 insertions(+), 16 deletions(-)
+
+diff --git a/src/compositor-drm.c b/src/compositor-drm.c
+index 6777bf8..7a99dae 100644
+--- a/src/compositor-drm.c
++++ b/src/compositor-drm.c
+@@ -1157,6 +1157,7 @@ cursor_bo_update(struct drm_backend *b, struct gbm_bo *bo,
+ 		weston_log("failed update cursor: %m\n");
+ }
+ 
++#if 0
+ static void
+ drm_output_set_cursor(struct drm_output *output)
+ {
+@@ -1204,6 +1205,67 @@ drm_output_set_cursor(struct drm_output *output)
+ 		output->cursor_plane.y = y;
+ 	}
+ }
++#else
++static void
++drm_output_set_cursor(struct drm_output *output)
++{
++	struct weston_view *ev = output->cursor_view;
++	struct weston_buffer *buffer;
++	struct drm_backend *c =
++		(struct drm_backend *) output->base.compositor->backend;
++	EGLint handle, stride;
++	struct gbm_bo *bo;
++	uint32_t buf[64 * 64];
++	unsigned char *s;
++	int i, x, y;
++
++	output->cursor_view = NULL;
++	if (ev == NULL) {
++		drmModeSetCursor(c->drm.fd, output->crtc_id, 0, 0, 0);
++		return;
++	}
++
++	buffer = ev->surface->buffer_ref.buffer;
++
++	if (buffer &&
++	    pixman_region32_not_empty(&output->cursor_plane.damage)) {
++		pixman_region32_fini(&output->cursor_plane.damage);
++		pixman_region32_init(&output->cursor_plane.damage);
++		output->current_cursor ^= 1;
++		bo = output->cursor_bo[output->current_cursor];
++		memset(buf, 0, sizeof buf);
++		stride = wl_shm_buffer_get_stride(buffer->shm_buffer);
++		s = wl_shm_buffer_get_data(buffer->shm_buffer);
++		wl_shm_buffer_begin_access(buffer->shm_buffer);
++		for (i = 0; i < ev->surface->height; i++)
++			memcpy(buf + i * 64, s + i * stride,
++			       ev->surface->width * 4);
++		wl_shm_buffer_end_access(buffer->shm_buffer);
++
++		if (gbm_bo_write(bo, buf, sizeof buf) < 0)
++			weston_log("failed update cursor: %m\n");
++
++		handle = gbm_bo_get_handle(bo).s32;
++		if (drmModeSetCursor(c->drm.fd,
++				     output->crtc_id, handle, 64, 64)) {
++			weston_log("failed to set cursor: %m\n");
++			c->cursors_are_broken = 1;
++		}
++	}
++
++	x = (ev->geometry.x - output->base.x) * output->base.current_scale;
++	y = (ev->geometry.y - output->base.y) * output->base.current_scale;
++	if (output->cursor_plane.x != x || output->cursor_plane.y != y) {
++		if (drmModeMoveCursor(c->drm.fd, output->crtc_id, x, y)) {
++			weston_log("failed to move cursor: %m\n");
++			c->cursors_are_broken = 1;
++		}
++
++		output->cursor_plane.x = x;
++		output->cursor_plane.y = y;
++	}
++}
++#endif
+ 
+ static void
+ drm_assign_planes(struct weston_output *output_base)
+@@ -1567,11 +1629,9 @@ drm_backend_create_gl_renderer(struct drm_backend *b)
+ 	if (format[1])
+ 		n_formats = 2;
+ 	if (gl_renderer->create(b->compositor,
+-				EGL_PLATFORM_GBM_KHR,
+ 				(void *)b->gbm,
+ 				gl_renderer->opaque_attribs,
+-				format,
+-				n_formats) < 0) {
++				format) < 0) {
+ 		return -1;
+ 	}
+ 
+@@ -1834,11 +1894,9 @@ drm_output_init_egl(struct drm_output *output, struct drm_backend *b)
+ 	if (format[1])
+ 		n_formats = 2;
+ 	if (gl_renderer->output_create(&output->base,
+-				       (EGLNativeWindowType)output->surface,
+ 				       output->surface,
+ 				       gl_renderer->opaque_attribs,
+-				       format,
+-				       n_formats) < 0) {
++				       format) < 0) {
+ 		weston_log("failed to create gl renderer output state\n");
+ 		gbm_surface_destroy(output->surface);
+ 		return -1;
+diff --git a/src/compositor-fbdev.c b/src/compositor-fbdev.c
+index 81281d0..a5c5709 100644
+--- a/src/compositor-fbdev.c
++++ b/src/compositor-fbdev.c
+@@ -573,9 +573,9 @@ fbdev_output_create(struct fbdev_backend *backend,
+ 	} else {
+ 		setenv("HYBRIS_EGLPLATFORM", "wayland", 1);
+ 		if (gl_renderer->output_create(&output->base,
+-					       (EGLNativeWindowType)NULL, NULL,
++					       NULL,
+ 					       gl_renderer->opaque_attribs,
+-					       NULL, 0) < 0) {
++					       NULL) < 0) {
+ 			weston_log("gl_renderer_output_create failed.\n");
+ 			goto out_shadow_surface;
+ 		}
+@@ -871,10 +871,10 @@ fbdev_backend_create(struct weston_compositor *compositor, int *argc, char *argv
+ 			goto out_launcher;
+ 		}
+ 
+-		if (gl_renderer->create(compositor, NO_EGL_PLATFORM,
++		if (gl_renderer->create(compositor, 
+ 					EGL_DEFAULT_DISPLAY,
+ 					gl_renderer->opaque_attribs,
+-					NULL, 0) < 0) {
++					NULL) < 0) {
+ 			weston_log("gl_renderer_create failed.\n");
+ 			goto out_launcher;
+ 		}
+diff --git a/src/compositor-wayland.c b/src/compositor-wayland.c
+index f6c84d4..2749c78 100644
+--- a/src/compositor-wayland.c
++++ b/src/compositor-wayland.c
+@@ -651,10 +651,8 @@ wayland_output_init_gl_renderer(struct wayland_output *output)
+ 
+ 	if (gl_renderer->output_create(&output->base,
+ 				       output->gl.egl_window,
+-				       output->gl.egl_window,
+ 				       gl_renderer->alpha_attribs,
+-				       NULL,
+-				       0) < 0)
++				       NULL) < 0)
+ 		goto cleanup_window;
+ 
+ 	return 0;
+@@ -1990,11 +1988,9 @@ wayland_backend_create(struct weston_compositor *compositor, int use_pixman,
+ 
+ 	if (!b->use_pixman) {
+ 		if (gl_renderer->create(compositor,
+-					EGL_PLATFORM_WAYLAND_KHR,
+ 					b->parent.wl_display,
+ 					gl_renderer->alpha_attribs,
+-					NULL,
+-					0) < 0) {
++					NULL) < 0) {
+ 			weston_log("Failed to initialize the GL renderer; "
+ 				   "falling back to pixman.\n");
+ 			b->use_pixman = 1;
+-- 
+1.8.3.1
+

@@ -5,7 +5,9 @@ LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://COPYING;md5=d79ee9e66bb0f95d3386a7acae780b70"
 
 SRC_URI = "http://wayland.freedesktop.org/releases/${BPN}-${PV}.tar.xz \
-           file://0001-ivi-shell-implement-multiscreen-feature.patch " 
+           file://0001-ivi-shell-implement-multiscreen-feature.patch \
+           file://0001-gl-renderer-for-renesas-board.patch \
+           file://0002-compositor-for-renesas-board.patch " 
 SRC_URI[md5sum] = "66bbba12f546570b4d97f676bc79a28e"
 SRC_URI[sha256sum] = "9c1b03f3184fa0b0dfdf67e215048085156e1a2ca344af6613fed36794ac48cf"
 
